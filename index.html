@@ -387,6 +387,7 @@
       <li>– <a href="#View-dollar">$ (jQuery or Zepto)</a></li>
       <li>– <a href="#View-render">render</a></li>
       <li>– <a href="#View-remove">remove</a></li>
+      <li>– <a href="#View-dispose">dispose</a></li>
       <li>– <a href="#View-make">make</a></li>
       <li>– <a href="#View-delegateEvents">delegateEvents</a></li>
       <li>– <a href="#View-undelegateEvents">undelegateEvents</a></li>
@@ -409,7 +410,7 @@
       <li>– <a href="#examples-rdio">Rdio</a></li>
       <li>– <a href="#examples-linkedin">LinkedIn Mobile</a></li>
       <li>– <a href="#examples-flow">Flow</a></li>
-      <li>– <a href="#examples-audiovroom">AudioVroom</a></li>
+      <li>– <a href="#examples-wordpress">WordPress.com</a></li>
       <li>– <a href="#examples-foursquare">Foursquare</a></li>
       <li>– <a href="#examples-wunderkit">Wunderkit</a></li>
       <li>– <a href="#examples-disqus">Disqus</a></li>
@@ -1435,7 +1436,7 @@ alert(JSON.stringify(collection));
 
     <ul class="small">
       <li><a href="http://underscorejs.org/#each">forEach (each)</a></li>
-      <li><a href="http://underscorejs.org/#map">map</a></li>
+      <li><a href="http://underscorejs.org/#map">map (collect)</a></li>
       <li><a href="http://underscorejs.org/#reduce">reduce (foldl, inject)</a></li>
       <li><a href="http://underscorejs.org/#reduceRight">reduceRight (foldr)</a></li>
       <li><a href="http://underscorejs.org/#find">find (detect)</a></li>
@@ -1443,7 +1444,7 @@ alert(JSON.stringify(collection));
       <li><a href="http://underscorejs.org/#reject">reject</a></li>
       <li><a href="http://underscorejs.org/#all">every (all)</a></li>
       <li><a href="http://underscorejs.org/#any">some (any)</a></li>
-      <li><a href="http://underscorejs.org/#include">include</a></li>
+      <li><a href="http://underscorejs.org/#include">include (contains)</a></li>
       <li><a href="http://underscorejs.org/#invoke">invoke</a></li>
       <li><a href="http://underscorejs.org/#max">max</a></li>
       <li><a href="http://underscorejs.org/#min">min</a></li>
@@ -1453,9 +1454,9 @@ alert(JSON.stringify(collection));
       <li><a href="http://underscorejs.org/#shuffle">shuffle</a></li>
       <li><a href="http://underscorejs.org/#toArray">toArray</a></li>
       <li><a href="http://underscorejs.org/#size">size</a></li>
-      <li><a href="http://underscorejs.org/#first">first</a></li>
+      <li><a href="http://underscorejs.org/#first">first (head, take)</a></li>
       <li><a href="http://underscorejs.org/#initial">initial</a></li>
-      <li><a href="http://underscorejs.org/#rest">rest</a></li>
+      <li><a href="http://underscorejs.org/#rest">rest (tail)</a></li>
       <li><a href="http://underscorejs.org/#last">last</a></li>
       <li><a href="http://underscorejs.org/#without">without</a></li>
       <li><a href="http://underscorejs.org/#indexOf">indexOf</a></li>
@@ -2339,8 +2340,8 @@ var Bookmark = Backbone.View.extend({
       <a href="http://github.com/sstephenson/eco">Eco</a> are all fine alternatives.
       Because <a href="http://underscorejs.org/">Underscore.js</a> is already on the page,
       <a href="http://underscorejs.org/#template">_.template</a>
-      is available, and is an excellent choice if you've already XSS-sanitized
-      your interpolated data.
+      is available, and is an excellent choice if you prefer simple
+      interpolated-JavaScript style templates.
     </p>
 
     <p>
@@ -2354,8 +2355,15 @@ var Bookmark = Backbone.View.extend({
     <p id="View-remove">
       <b class="header">remove</b><code>view.remove()</code>
       <br />
-      Convenience function for removing the view from the DOM. Equivalent to calling
-      <tt>view.$el.remove();</tt>
+      <a href="#View-dispose">Dispose</a> of the view before removing it from
+      the DOM via <tt>view.$el.remove()</tt>.
+    </p>
+
+    <p id="View-dispose">
+      <b class="header">dispose</b><code>view.dispose()</code>
+      <br />
+      Clean up any references to the view in order to prevent unwanted latent
+      effects and memory leaks.
     </p>
 
     <p id="View-make">
@@ -2576,21 +2584,24 @@ var model = localBackbone.Model.extend(...);
       </a>
     </div>
 
-    <h2 id="examples-audiovroom">AudioVroom</h2>
 
-    <p>
-      <a href="http://www.audiovroom.com/">AudioVroom</a> is a free music
-      streaming app that allows you to listen to your Facebook friends like
-      radio stations. It relies heavily on Backbone (views and song management)
-      and also features a responsive grid-based design (using CSS3 media-queries)
-      to deliver a unified user experience on desktops, mobiles, and tablets alike.
-      Being a pure Backbone app, AudioVroom is only 60kb compressed, and can be
-      entirely hosted on the CDN.
-    </p>
+  	<h2 id="examples-wordpress">WordPress.com</h2>
+
+  	<p>
+  		<a href="http://wordpress.com/">WordPress.com</a> is the software-as-a-service
+  		version of <a href="http://wordpress.org">WordPress</a>. It uses Backbone.js
+  		Models, Collections, and Views in its
+  		<a href="http://en.blog.wordpress.com/2012/05/25/notifications-refreshed/">Notifications system</a>.  Backbone.js was selected
+  		because it was easy to fit into the structure of the application, not the
+  		other way around. <a href="http://automattic.com">Automattic</a>
+  		(the company behind WordPress.com) is integrating Backbone.js into the
+  		Stats tab and other features throughout the homepage.
+  	</p>
 
     <div style="text-align: center;">
-      <a href="http://www.audiovroom.com/">
-        <img width="550" height="513" data-original="docs/images/audiovroom.png" alt="AudioVroom" class="example_image" />
+      <a href="http://wordpress.com/">
+        <img width="550" height="387" data-original="docs/images/wpcom-notifications.png" alt="WordPress.com Notifications"
+  	title="WordPress.com Notifications" class="example_image" />
       </a>
     </div>
 
@@ -2654,9 +2665,9 @@ var model = localBackbone.Model.extend(...);
       provide a free world-class education to anyone anywhere. With thousands of
       videos, hundreds of JavaScript-driven exercises, and big plans for the
       future, Khan Academy uses Backbone to keep frontend code modular and organized.
-      <a href="https://khanacademy.kilnhg.com/Code/Website/Group/stable/Files/javascript/profile-package?rev=tip">User profiles</a>
-      and <a href="https://khanacademy.kilnhg.com/Code/Website/Group/stable/File/javascript/shared-package/goals.js?rev=tip">goal setting</a>
-      are implemented with Backbone, <a href="http://jquery.com/">jQuery</a> and <a href="http://handlebarsjs.com/">Handlebars</a>, and most new feature
+      User profiles and goal setting are implemented with Backbone,
+      <a href="http://jquery.com/">jQuery</a> and
+      <a href="http://handlebarsjs.com/">Handlebars</a>, and most new feature
       work is being pushed to the client side, greatly increasing the quality of
       <a href="https://github.com/Khan/khan-api/">the API</a>.
     </p>

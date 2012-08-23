@@ -134,6 +134,9 @@
 
       rest = [];
       events = events.split(eventSplitter);
+
+      // Fill up `rest` with the callback arguments.  Since we're only copying
+      // the tail of `arguments`, a loop is much faster than Array#slice.
       for (i = 1, length = arguments.length; i < length; i++) {
         rest[i - 1] = arguments[i];
       }
@@ -558,7 +561,10 @@
     if (options.comparator !== void 0) this.comparator = options.comparator;
     this._reset();
     this.initialize.apply(this, arguments);
-    if (models) this.reset(models, {silent: true, parse: options.parse});
+    if (models) {
+      if (options.parse) models = this.parse(models);
+      this.reset(models, {silent: true, parse: options.parse});
+    }
   };
 
   // Define the Collection's inheritable methods.
@@ -785,14 +791,14 @@
     // collection immediately, unless `wait: true` is passed, in which case we
     // wait for the server to agree.
     create: function(model, options) {
-      var coll = this;
+      var collection = this;
       options = options ? _.clone(options) : {};
       model = this._prepareModel(model, options);
       if (!model) return false;
-      if (!options.wait) coll.add(model, options);
+      if (!options.wait) collection.add(model, options);
       var success = options.success;
       options.success = function(model, resp, options) {
-        if (options.wait) coll.add(model, options);
+        if (options.wait) collection.add(model, options);
         if (success) success(model, resp, options);
       };
       model.save(null, options);
@@ -861,11 +867,12 @@
   });
 
   // Underscore methods that we want to implement on the Collection.
-  var methods = ['forEach', 'each', 'map', 'reduce', 'reduceRight', 'find',
-    'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any',
-    'include', 'contains', 'invoke', 'max', 'min', 'sortBy', 'sortedIndex',
-    'toArray', 'size', 'first', 'initial', 'rest', 'last', 'without', 'indexOf',
-    'shuffle', 'lastIndexOf', 'isEmpty', 'groupBy'];
+  var methods = ['forEach', 'each', 'map', 'collect', 'reduce', 'foldl',
+    'inject', 'reduceRight', 'foldr', 'find', 'detect', 'filter', 'select',
+    'reject', 'every', 'all', 'some', 'any', 'include', 'contains', 'invoke',
+    'max', 'min', 'sortBy', 'sortedIndex', 'toArray', 'size', 'first', 'head',
+    'take', 'initial', 'rest', 'tail', 'last', 'without', 'indexOf', 'shuffle',
+    'lastIndexOf', 'isEmpty', 'groupBy'];
 
   // Mix in each Underscore method as a proxy to `Collection#models`.
   _.each(methods, function(method) {
@@ -1023,6 +1030,9 @@
       var docMode           = document.documentMode;
       var oldIE             = (isExplorer.exec(navigator.userAgent.toLowerCase()) && (!docMode || docMode <= 7));
 
+      // Normalize root to always include trailing slash
+      if (!trailingSlash.test(this.options.root)) this.options.root += '/';
+
       if (oldIE && this._wantsHashChange) {
         this.iframe = Backbone.$('<iframe src="javascript:0" tabindex="-1" />').hide().appendTo('body')[0].contentWindow;
         this.navigate(fragment);
@@ -1042,7 +1052,7 @@
       // opened by a non-pushState browser.
       this.fragment = fragment;
       var loc = this.location;
-      var atRoot  = (loc.pathname === this.options.root) && !loc.search;
+      var atRoot = (loc.pathname.replace(/[^/]$/, '$&/') === this.options.root) && !loc.search;
 
       // If we've started off with a route from a `pushState`-enabled browser,
       // but we're currently in a browser that doesn't support it...
@@ -1195,9 +1205,19 @@
       return this;
     },
 
+    // Clean up references to this view in order to prevent latent effects and
+    // memory leaks.
+    dispose: function() {
+      this.undelegateEvents();
+      if (this.model) this.model.off(null, null, this);
+      if (this.collection) this.collection.off(null, null, this);
+      return this;
+    },
+
     // Remove this view from the DOM. Note that the view isn't present in the
     // DOM by default, so calling this method may be a no-op.
     remove: function() {
+      this.dispose();
       this.$el.remove();
       return this;
     },
@@ -1284,8 +1304,8 @@
     _ensureElement: function() {
       if (!this.el) {
         var attrs = _.extend({}, getValue(this, 'attributes'));
-        if (this.id) attrs.id = this.id;
-        if (this.className) attrs['class'] = this.className;
+        if (this.id) attrs.id = getValue(this, 'id');
+        if (this.className) attrs['class'] = getValue(this, 'className');
         this.setElement(this.make(getValue(this, 'tagName'), attrs), false);
       } else {
         this.setElement(this.el, false);
@@ -1293,14 +1313,6 @@
     }
 
   });
-
-  // The self-propagating extend function that Backbone classes use.
-  var extend = function(protoProps, classProps) {
-    return inherits(this, protoProps, classProps);
-  };
-
-  // Set up inheritance for the model, collection, and view.
-  Model.extend = Collection.extend = Router.extend = View.extend = extend;
 
   // Backbone.sync
   // -------------
@@ -1401,7 +1413,8 @@
   // Helper function to correctly set up the prototype chain, for subclasses.
   // Similar to `goog.inherits`, but uses a hash of prototype properties and
   // class properties to be extended.
-  var inherits = function(parent, protoProps, staticProps) {
+  var extend = function(protoProps, staticProps) {
+    var parent = this;
     var child;
 
     // The constructor function for the new subclass is either defined by you
@@ -1436,6 +1449,9 @@
 
     return child;
   };
+
+  // Set up inheritance for the model, collection, and view.
+  Model.extend = Collection.extend = Router.extend = View.extend = extend;
 
   // Helper function to get a value from a Backbone object as a property
   // or as a function.
